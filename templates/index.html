@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot SAMAC Bank</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <div class="chat-container">
+        <h1>Bem - Vindo ao SAMAC Bank</h1>
+        <div id="button-container" class="button-container">
+            <button class="chat-button" onclick="enviarPergunta('oi')">Olá</button>
+            <button class="chat-button" onclick="enviarPergunta('como posso abrir uma conta?')">Como abrir uma conta?</button>
+            <button class="chat-button" onclick="enviarPergunta('qual é o saldo da minha conta?')">Qual é o saldo da minha conta?</button>
+            <button class="chat-button" onclick="enviarPergunta('vocês oferecem empréstimos pessoais?')">Empréstimos Pessoais</button>
+        </div>
+        <div id="chat-box" class="chat-box">
+            <div id="chat-log" class="chat-log"></div>
+        </div>
+        <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
+        <button id="send-btn">Enviar</button>
+    </div>
+
+    <script>
+        // Envia a pergunta pré-definida ao chatbot
+        function enviarPergunta(pergunta) {
+            addMessageToChat('Você: ' + pergunta);
+            fetch('/resposta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ mensagem: pergunta })
+            })
+            .then(response => response.json())
+            .then(data => {
+                addMessageToChat('Sam: ' + data.resposta);
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                addMessageToChat('Sam: Desculpe, houve um erro.');
+            });
+        }
+
+        document.getElementById('send-btn').addEventListener('click', function() {
+            var userInput = document.getElementById('user-input').value;
+            if (userInput.trim() !== '') {
+                // Exibe a mensagem do usuário
+                addMessageToChat('Você: ' + userInput);
+
+                // Envia a mensagem para o backend
+                fetch('/resposta', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mensagem: userInput })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Exibe a resposta do chatbot
+                    addMessageToChat('Sam: ' + data.resposta);
+                })
+                .catch(error => {
+                    console.error('Erro:', error);
+                    addMessageToChat('Sam: Desculpe, houve um erro.');
+                });
+
+                // Limpa o campo de entrada
+                document.getElementById('user-input').value = '';
+            }
+        });
+
+        // Função para adicionar uma mensagem ao chat
+        function addMessageToChat(message) {
+            const chatLog = document.getElementById('chat-log');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = message;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight; // Desce até a última mensagem
+        }
+    </script>
+</body>
+</html>
